@@ -9,6 +9,8 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
+  AlertTriangle,
+  BellRing,
   DollarSign,
   Receipt,
   FileText,
@@ -40,6 +42,11 @@ export const WalletView: React.FC<WalletViewProps> = ({
 
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [selectedTxForSplitDetail, setSelectedTxForSplitDetail] = useState<Transaction | null>(null);
+
+  // Low balance notification threshold
+  const [threshold, setThreshold] = useState<number>(500);
+  const [dismissLowBalanceAlert, setDismissLowBalanceAlert] = useState<boolean>(false);
+  const isLowBalance = agent.walletBalance < threshold;
 
   // Calculate real monthly earnings from commission transactions
   const monthlyEarnings = transactions
@@ -77,9 +84,29 @@ export const WalletView: React.FC<WalletViewProps> = ({
       {/* Banner */}
       <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold text-emerald-300 mb-2">
-            <Wallet className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Agent Wallet & Earnings Statement</span>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-xs font-bold text-emerald-300">
+              <Wallet className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Agent Wallet & Earnings Statement</span>
+            </div>
+
+            <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-xs text-slate-300">
+              <BellRing className={`w-3.5 h-3.5 ${isLowBalance ? 'text-rose-400' : 'text-slate-400'}`} />
+              <span className="font-semibold text-slate-400">Alert Threshold:</span>
+              <select
+                value={threshold}
+                onChange={(e) => {
+                  setThreshold(Number(e.target.value));
+                  setDismissLowBalanceAlert(false);
+                }}
+                className="bg-transparent font-bold text-amber-400 focus:outline-none cursor-pointer"
+              >
+                <option value={200} className="bg-slate-900 text-white">200 Birr</option>
+                <option value={500} className="bg-slate-900 text-white">500 Birr (Default)</option>
+                <option value={1000} className="bg-slate-900 text-white">1,000 Birr</option>
+                <option value={2000} className="bg-slate-900 text-white">2,000 Birr</option>
+              </select>
+            </div>
           </div>
           <h1 className="text-2xl font-black text-white">Wallet Management</h1>
           <p className="text-xs text-slate-400 mt-1">
@@ -96,14 +123,59 @@ export const WalletView: React.FC<WalletViewProps> = ({
         </div>
       </div>
 
+      {/* Low Balance Alert Banner */}
+      {isLowBalance && !dismissLowBalanceAlert && (
+        <div className="p-4 bg-rose-500/10 border-2 border-rose-500/40 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs shadow-lg animate-pulse-subtle">
+          <div className="flex items-start space-x-3">
+            <div className="p-2 bg-rose-500/20 border border-rose-500/30 rounded-xl text-rose-400 shrink-0 mt-0.5 sm:mt-0">
+              <BellRing className="w-5 h-5 animate-bounce" />
+            </div>
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="font-extrabold text-rose-300 text-sm">Low Wallet Balance Alert</span>
+                <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-200 border border-rose-500/30 text-[10px] font-mono font-bold">
+                  Below {threshold} Birr Threshold
+                </span>
+              </div>
+              <p className="text-slate-300 mt-0.5">
+                Your available balance is currently <span className="font-bold text-rose-400 font-mono">{agent.walletBalance.toLocaleString()} Birr</span>, which is below your minimum threshold of {threshold} Birr. Please top up your wallet or issue tickets to earn commission.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2 self-end sm:self-center shrink-0">
+            <button
+              onClick={() => setDismissLowBalanceAlert(true)}
+              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-[11px] font-semibold transition-all cursor-pointer"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 4 Wallet Financial Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl">
-          <p className="text-xs text-slate-400 font-medium">Available Balance</p>
-          <p className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
+        <div className={`p-5 bg-slate-900 border rounded-2xl relative overflow-hidden ${
+          isLowBalance ? 'border-rose-500/50 shadow-lg shadow-rose-500/10' : 'border-slate-800'
+        }`}>
+          <div className="flex items-center justify-between">
+            <p className="text-xs text-slate-400 font-medium">Available Balance</p>
+            {isLowBalance && (
+              <span className="px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-500/30 text-[10px] font-bold text-rose-300 flex items-center space-x-1">
+                <AlertTriangle className="w-3 h-3 text-rose-400" />
+                <span>Low Balance</span>
+              </span>
+            )}
+          </div>
+          <p className={`text-2xl sm:text-3xl font-black mt-1 ${
+            isLowBalance ? 'text-rose-400' : 'text-emerald-400'
+          }`}>
             {agent.walletBalance.toLocaleString()} <span className="text-xs font-bold">Birr</span>
           </p>
-          <p className="text-[10px] text-slate-500 mt-2">Ready for withdrawal</p>
+          <p className="text-[10px] text-slate-500 mt-2">
+            {isLowBalance ? `Warning: Below ${threshold} Birr threshold` : 'Ready for withdrawal'}
+          </p>
         </div>
 
         <div className="p-5 bg-slate-900 border border-slate-800 rounded-2xl">
