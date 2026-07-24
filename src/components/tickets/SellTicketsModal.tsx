@@ -38,18 +38,19 @@ export const SellTicketsModal: React.FC<SellTicketsModalProps> = ({
     (initialType as 'universal' | 'solo' | 'multiplayer') || 'universal'
   );
 
-  const [selectedUniversalGame, setSelectedUniversalGame] = useState<UniversalGame>(
-    universalGames[0] || {
-      id: 'UG-101',
-      name: 'Universal Jackpot',
-      ticketPrice: 100,
-      jackpotAmount: 1000000,
-      agentCommissionRate: 0.10,
-      drawTime: '',
-      status: 'active',
-      totalTicketsSold: 100,
-    }
+  const [selectedUniversalGame, setSelectedUniversalGame] = useState<UniversalGame | null>(
+    universalGames[0] || null
   );
+
+  useEffect(() => {
+    if (universalGames.length > 0) {
+      if (!selectedUniversalGame || !universalGames.find((g) => g.id === selectedUniversalGame.id)) {
+        setSelectedUniversalGame(universalGames[0]);
+      }
+    } else {
+      setSelectedUniversalGame(null);
+    }
+  }, [universalGames]);
 
   const [selectedSoloGame, setSelectedSoloGame] = useState<SoloGame | null>(
     soloGames[0] || null
@@ -145,6 +146,11 @@ export const SellTicketsModal: React.FC<SellTicketsModalProps> = ({
   const handleSellUniversal = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!selectedUniversalGame) {
+      setError('No active Universal Game available.');
+      return;
+    }
 
     if (!playerName.trim() || !playerPhone.trim() || !selectedNumber.trim()) {
       setError('Please provide Player Name, Phone Number, and Selected Number.');
@@ -335,38 +341,54 @@ export const SellTicketsModal: React.FC<SellTicketsModalProps> = ({
 
             {/* Universal Game Form */}
             {ticketType === 'universal' && (
-              <form onSubmit={handleSellUniversal} className="space-y-4 text-xs">
-                <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Select Universal Game</label>
-                  <select
-                    value={selectedUniversalGame.id}
-                    onChange={(e) => {
-                      const found = universalGames.find((g) => g.id === e.target.value);
-                      if (found) setSelectedUniversalGame(found);
-                    }}
-                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-medium focus:outline-none focus:border-amber-500"
-                  >
-                    {universalGames.map((g) => (
-                      <option key={g.id} value={g.id}>
-                        {g.name} — Price: {g.ticketPrice} Birr (Jackpot: {g.jackpotAmount.toLocaleString()} Birr)
-                      </option>
-                    ))}
-                  </select>
+              !selectedUniversalGame ? (
+                <div className="p-6 bg-slate-800/80 border border-slate-700 rounded-2xl text-center space-y-3 my-2">
+                  <Globe className="w-8 h-8 text-slate-500 mx-auto" />
+                  <p className="font-bold text-slate-300">No Active Universal Games</p>
+                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                    There are currently no active Universal Draw Games. You can sell tickets for{' '}
+                    <button type="button" onClick={() => setTicketType('solo')} className="text-amber-400 font-bold underline cursor-pointer">
+                      Solo Games
+                    </button>{' '}
+                    or{' '}
+                    <button type="button" onClick={() => setTicketType('multiplayer')} className="text-amber-400 font-bold underline cursor-pointer">
+                      Multiplayer Games
+                    </button>.
+                  </p>
                 </div>
-
-                {/* Auto Commission Callout */}
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-between">
-                  <div className="text-emerald-300">
-                    <p className="font-bold">10% Agent Commission Guarantee</p>
-                    <p className="text-[11px] text-emerald-200/80">
-                      Ticket Price: {selectedUniversalGame.ticketPrice} Birr → You earn{' '}
-                      <span className="font-bold text-white">
-                        {Math.round(selectedUniversalGame.ticketPrice * selectedUniversalGame.agentCommissionRate)} Birr
-                      </span>{' '}
-                      instantly into wallet!
-                    </p>
+              ) : (
+                <form onSubmit={handleSellUniversal} className="space-y-4 text-xs">
+                  <div>
+                    <label className="block text-slate-300 font-semibold mb-1">Select Universal Game</label>
+                    <select
+                      value={selectedUniversalGame.id}
+                      onChange={(e) => {
+                        const found = universalGames.find((g) => g.id === e.target.value);
+                        if (found) setSelectedUniversalGame(found);
+                      }}
+                      className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-white font-medium focus:outline-none focus:border-amber-500"
+                    >
+                      {universalGames.map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.name} — Price: {g.ticketPrice} Birr (Jackpot: {g.jackpotAmount.toLocaleString()} Birr)
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                </div>
+
+                  {/* Auto Commission Callout */}
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-between">
+                    <div className="text-emerald-300">
+                      <p className="font-bold">10% Agent Commission Guarantee</p>
+                      <p className="text-[11px] text-emerald-200/80">
+                        Ticket Price: {selectedUniversalGame.ticketPrice} Birr → You earn{' '}
+                        <span className="font-bold text-white">
+                          {Math.round(selectedUniversalGame.ticketPrice * selectedUniversalGame.agentCommissionRate)} Birr
+                        </span>{' '}
+                        instantly into wallet!
+                      </p>
+                    </div>
+                  </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -452,6 +474,7 @@ export const SellTicketsModal: React.FC<SellTicketsModalProps> = ({
                   </button>
                 </div>
               </form>
+              )
             )}
 
             {/* Solo Game Ticket Form */}

@@ -20,38 +20,7 @@ export const INITIAL_AGENT: AgentProfile = {
   activeGamesCount: 0,
 };
 
-export const INITIAL_UNIVERSAL_GAMES: UniversalGame[] = [
-  {
-    id: 'UG-101',
-    name: 'Universal Jackpot Grand Draw',
-    ticketPrice: 100,
-    jackpotAmount: 1000000,
-    agentCommissionRate: 0.10, // 10 Birr per 100 Birr ticket
-    drawTime: new Date(Date.now() + 86400000 * 2).toISOString(),
-    status: 'active',
-    totalTicketsSold: 0,
-  },
-  {
-    id: 'UG-102',
-    name: 'Spain Weekly Millionaire',
-    ticketPrice: 200,
-    jackpotAmount: 2500000,
-    agentCommissionRate: 0.10, // 20 Birr per ticket
-    drawTime: new Date(Date.now() + 86400000 * 5).toISOString(),
-    status: 'active',
-    totalTicketsSold: 0,
-  },
-  {
-    id: 'UG-103',
-    name: 'Daily Fast 50 Birr Lotto',
-    ticketPrice: 50,
-    jackpotAmount: 250000,
-    agentCommissionRate: 0.10, // 5 Birr per ticket
-    drawTime: new Date(Date.now() + 3600000 * 4).toISOString(),
-    status: 'active',
-    totalTicketsSold: 0,
-  },
-];
+export const INITIAL_UNIVERSAL_GAMES: UniversalGame[] = [];
 
 export const INITIAL_SOLO_GAMES: SoloGame[] = [];
 

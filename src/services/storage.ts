@@ -116,7 +116,12 @@ export class StorageService {
       localStorage.setItem(KEYS.UNIVERSAL_GAMES, JSON.stringify(INITIAL_UNIVERSAL_GAMES));
       return INITIAL_UNIVERSAL_GAMES;
     }
-    return JSON.parse(raw);
+    const parsed: UniversalGame[] = JSON.parse(raw);
+    const cleaned = parsed.filter((g) => !['UG-101', 'UG-102', 'UG-103'].includes(g.id));
+    if (cleaned.length !== parsed.length) {
+      localStorage.setItem(KEYS.UNIVERSAL_GAMES, JSON.stringify(cleaned));
+    }
+    return cleaned;
   }
 
   static getSoloGames(): SoloGame[] {
