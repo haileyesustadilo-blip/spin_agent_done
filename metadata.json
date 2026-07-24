@@ -1,0 +1,10 @@
+{
+  "name": "Spain Game Agent Platform",
+  "description": "Comprehensive Agent Mode Portal for ticket sales, Solo Game creation and wheel spinning, winner QR verification, wallet commission tracking, and reporting.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
